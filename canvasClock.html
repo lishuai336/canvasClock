@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>canvas时钟</title>
+		<style type="text/css">
+			div {
+				margin-top: 100px;
+				text-align: center;
+			}
+		</style>
+	</head>
+	<body>
+		
+		<div>
+			<canvas id="clock" width="300" height="300">您的浏览器不支持canvas，请升级浏览器</canvas>
+		</div>
+		
+<script type="text/javascript">
+	var canvasClock = document.getElementById("clock");
+	var canvasContext = canvasClock.getContext("2d");		//getContext返回一个对象，该对象提供了用于在画布上绘图的方法和属性
+	var canvasWidth = canvasContext.canvas.width;
+	var canvasHeight = canvasContext.canvas.height;
+	var radius = canvasWidth / 2;
+	var rem = canvasWidth / 200;
+	
+	//钟表数字背景
+	function drawBackground(){
+		canvasContext.save();
+		canvasContext.translate(radius, radius);        					//移动画布原点到中心点
+		canvasContext.beginPath();										//beginPath 开始一条路径，或者重置一条路径
+		canvasContext.lineWidth = 8 * rem;									//线条宽度
+		canvasContext.arc(0, 0, radius - canvasContext.lineWidth / 2, 0, 2*Math.PI, false); 		//创建圆形路径s
+		canvasContext.stroke();      									//绘制已定义的路径
+		
+		//绘制12个数字
+		var hourNumber = [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2];
+		canvasContext.font = 18 * rem + "px Microsoft YaHei";			//设置文本大小
+		canvasContext.textAlign = "center";						//设置文本水平对其方式
+		canvasContext.textBaseline = "middle";					//设置文本垂直对齐方式
+		hourNumber.forEach(function(number, i){
+			var radian = 2 * Math.PI / 12 * i;            		//每个小时的弧度
+			var radianX = (radius - 30 * rem) * Math.cos(radian);		//每个小时X坐标
+			var radianY = (radius - 30 * rem) * Math.sin(radian);     //每个小时Y坐标
+			canvasContext.fillText(number, radianX, radianY);	//绘制“被填充的”文本
+		});
+		
+		//绘制60个刻度
+		for(var i = 0; i < 60; i++){
+			var radian = 2 * Math.PI / 60 * i;
+			var x = (radius - 16 * rem) * Math.cos(radian);
+			var y = (radius - 16 * rem) * Math.sin(radian);
+			canvasContext.beginPath();
+			if(i % 5 == 0){
+				canvasContext.fillStyle = "#000";
+			}
+			else{
+				canvasContext.fillStyle = "#ccc";
+			}
+			canvasContext.arc(x, y, 2 * rem, 0, 2 * Math.PI, false);
+			canvasContext.fill();
+		}
+	} 
+	
+	//时针
+	function drawHour(hour, minutes, seconds){
+		canvasContext.save();                        //保存绘画前的画布环境
+		canvasContext.beginPath();
+		var radianHour = 2 * Math.PI / 12 * hour;
+		var radianMinutes = 2 * Math.PI / 12 / 60 * minutes
+		var radianSeconds = 2 * Math.PI / 12 / 60 / 60 * seconds;
+		canvasContext.rotate(radianHour + radianMinutes + radianSeconds);
+		canvasContext.lineWidth = 6 * rem;
+		canvasContext.lineCap = "round";
+		canvasContext.moveTo(0, 10 * rem);
+		canvasContext.lineTo(0, -radius / 2);
+		canvasContext.stroke();
+		canvasContext.restore();					//还原初始画布环境
+	}
+	
+	//分针
+	function drawMinute(minutes, seconds){
+		canvasContext.save();
+		canvasContext.beginPath();
+		var radianMinutes = 2 * Math.PI / 60 * minutes;
+		var radianSeconds = 2 * Math.PI / 60 / 60 * seconds;
+		canvasContext.rotate(radianMinutes + radianSeconds);
+		canvasContext.lineWidth = 4 * rem;
+		canvasContext.lineCap = "round";
+		canvasContext.moveTo(0, 12 * rem);
+		canvasContext.lineTo(0, -radius + 30 * rem);
+		canvasContext.stroke();
+		canvasContext.restore();
+	}
+	
+	//秒针
+	function drawSeconds(seconds){
+		canvasContext.save();
+		canvasContext.beginPath();
+		canvasContext.fillStyle = "#c14543";
+		var radian = 2 * Math.PI / 60 * seconds;
+		canvasContext.rotate(radian);
+		canvasContext.moveTo(2 * rem, 20 * rem);
+		canvasContext.lineTo(-2 * rem, 20 * rem);
+		canvasContext.lineTo(-1 * rem, -radius + 18 * rem);
+		canvasContext.lineTo(1 * rem, -radius + 18 * rem);
+		canvasContext.fill();
+		canvasContext.restore();
+	}
+	
+	//仿螺丝
+	function drawDot(){
+		canvasContext.save();
+		canvasContext.beginPath();
+		canvasContext.fillStyle = "#fff";
+		canvasContext.arc(0, 0, 2 * rem, 0, 2 * Math.PI, false);
+		canvasContext.fill();
+		canvasContext.restore();
+	}
+	
+	function draw(){
+		canvasContext.clearRect(0, 0, canvasWidth, canvasHeight);
+		var now = new Date();
+		var hour = now.getHours();
+		var minutes = now.getMinutes();
+		var seconds = now.getSeconds();
+		drawBackground();
+		drawHour(hour, minutes, seconds);
+		drawMinute(minutes, seconds);
+		drawSeconds(seconds);
+		drawDot();
+		canvasContext.restore();
+	}
+
+	draw();
+	setInterval(draw, 1000);
+	
+</script>
+	</body>
+</html>
